@@ -8,11 +8,9 @@
 import UIKit
 
 struct StackViewFactory {
-    static func makeHorizontalStackView(withSpacing spacing: CGFloat) -> UIStackView {
+    static func makeHorizontalStackView() -> UIStackView {
         let stackView = UIStackView()
         stackView.axis = .horizontal
-        stackView.spacing = spacing
-        stackView.distribution = .fillProportionally
         stackView.translatesAutoresizingMaskIntoConstraints = false
         return stackView
     }

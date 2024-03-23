@@ -8,7 +8,7 @@
 import CoreLocation
 
 protocol WeatherViewModelDelegate: AnyObject {
-  func didUpdateWeather(_ weatherModel: WeatherModel)
+  func didUpdateWeather(_ weatherModel: CurrentWeatherModel)
   func didFailWithError(_ error: Error)
 }
 
@@ -35,11 +35,10 @@ class WeatherViewModel: NSObject {
 
 extension WeatherViewModel: CLLocationManagerDelegate {
   func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-    if let location = locations.last {
-      let latitude = location.coordinate.latitude
-      let longitude = location.coordinate.longitude
-      weatherManager.fetchWeather(latitude: latitude, longitude: longitude)
-    }
+      locations.last
+          .map(\.coordinate)
+          .map { ($0.latitude, $0.longitude) }
+          .map(weatherManager.fetchWeather)
   }
 
   func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
@@ -48,7 +47,7 @@ extension WeatherViewModel: CLLocationManagerDelegate {
 }
 
 extension WeatherViewModel: WeatherManagerDelegate {
-  func didUpdateWeather(_ weatherManager: WeatherManager, weather: WeatherModel) {
+  func didUpdateWeather(_ weatherManager: WeatherManager, weather: CurrentWeatherModel) {
     delegate?.didUpdateWeather(weather)
   }
 
