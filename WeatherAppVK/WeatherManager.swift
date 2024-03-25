@@ -9,12 +9,12 @@ import UIKit
 import CoreLocation
 
 protocol WeatherManagerDelegate {
-  func didUpdateWeather(_ weatherManager: WeatherManager, weather: CurrentWeatherModel)
+  func didUpdateWeather(_ weatherManager: WeatherManager, weather: WeatherModel)
   func didFailWithError(error: Error)
 }
 
 struct WeatherManager {
-  let currenrBaseURL = "http://api.weatherunlocked.com/api/current/"
+  let currentBaseURL = "http://api.weatherunlocked.com/api/current/"
   let forecastBaseURL = "http://api.weatherunlocked.com/api/forecast/"
   let apiKey = "6889dd77e925fe59613db86d643f893e"
   let appId = "cddce782"
@@ -26,8 +26,9 @@ struct WeatherManager {
   func fetchWeather(cityName: String) {
     searchCoordinates(for: cityName) { coordinates in
       if let coordinates = coordinates {
-        let urlString = "\(currenrBaseURL)\(coordinates.0),\(coordinates.1)?app_id=\(appId)&app_key=\(apiKey)"
-        performRequest(with: urlString)
+        let currentURLString = "\(self.currentBaseURL)\(coordinates.0),\(coordinates.1)?app_id=\(self.appId)&app_key=\(self.apiKey)"
+        let forecastURLString = "\(self.forecastBaseURL)\(coordinates.0),\(coordinates.1)?app_id=\(self.appId)&app_key=\(self.apiKey)"
+        self.performRequest(with: currentURLString, forecastURLString)
       } else {
         print("Failed to get coordinates for \(cityName)")
       }
@@ -35,29 +36,56 @@ struct WeatherManager {
   }
 
   func fetchWeather(latitude: CLLocationDegrees, longitude: CLLocationDegrees) {
-    let urlString = "\(currenrBaseURL)\(latitude),\(longitude)?app_id=\(appId)&app_key=\(apiKey)"
-    performRequest(with: urlString)
+    let currentURLString = "\(self.currentBaseURL)\(latitude),\(longitude)?app_id=\(self.appId)&app_key=\(self.apiKey)"
+    let forecastURLString = "\(self.forecastBaseURL)\(latitude),\(longitude)?app_id=\(self.appId)&app_key=\(self.apiKey)"
+    self.performRequest(with: currentURLString, forecastURLString)
   }
 
-  func performRequest(with urlString: String) {
-    guard let url = URL(string: urlString) else { return }
+  func performRequest(with currentURLString: String, _ forecastURLString: String) {
+    guard let currentURL = URL(string: currentURLString), let forecastURL = URL(string: forecastURLString) else { return }
 
-    let task = session.dataTask(with: url) { (data, response, error) in
-      guard let safeData = data else { self.delegate?.didFailWithError(error: error!)
-        return }
-      if let weather = self.parseJSON(safeData) {
-        self.delegate?.didUpdateWeather(self, weather: weather)
-      }
+    let group = DispatchGroup()
+    var currentWeather: CurrentWeatherModel?
+    var forecastWeather: ForecastWeatherModel?
+
+    group.enter()
+    let currentTask = session.dataTask(with: currentURL) { (data, response, error) in
+      defer { group.leave() }
+      guard let data = data else { return }
+      currentWeather = self.parseCurrentJSON(data)
     }
-    task.resume()
+    currentTask.resume()
+
+    group.enter()
+    let forecastTask = session.dataTask(with: forecastURL) { (data, response, error) in
+      defer { group.leave() }
+      guard let data = data else { return }
+      forecastWeather = self.parseForecastJSON(data)
+    }
+    forecastTask.resume()
+
+    group.notify(queue: .main) {
+      let weather = WeatherModel(currentWeather: currentWeather, forecastWeather: forecastWeather)
+      self.delegate?.didUpdateWeather(self, weather: weather)
+    }
   }
 
-  func parseJSON(_ weatherData: Data) -> CurrentWeatherModel? {
+  func parseCurrentJSON(_ data: Data) -> CurrentWeatherModel? {
     do {
-      let decodedData = try decoder.decode(CurrentWeatherModel.self, from: weatherData)
+      let decodedData = try decoder.decode(CurrentWeatherModel.self, from: data)
       return decodedData
     } catch {
-      print("Error decoding JSON: \(error)")
+      print("Error decoding current weather JSON: \(error)")
+      return nil
+    }
+  }
+
+  func parseForecastJSON(_ data: Data) -> ForecastWeatherModel? {
+    do {
+      let decodedData = try decoder.decode(ForecastWeatherModel.self, from: data)
+      return decodedData
+    } catch {
+      print("Error decoding forecast weather JSON: \(error)")
       return nil
     }
   }

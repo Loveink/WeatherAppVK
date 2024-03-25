@@ -31,24 +31,33 @@ class DayCell: UICollectionViewCell {
   let conditionView = ImageViewFactory.makeImageView(systemName: "sun.max", tintColor: UIColor(named: "ColorText"))
   let minTemperatureLabel = LabelFactory.makeLabel(text: "-6°", fontSize: 20, weight: .bold)
   let maxTemperatureLabel = LabelFactory.makeLabel(text: "21°", fontSize: 20, weight: .bold)
-  private let windView = ImageViewFactory.makeImageView(systemName: "wind", tintColor: UIColor(named: "ColorText"))
-  private let windLabel = LabelFactory.makeLabel(text: "21 ms", fontSize: 20, weight: .bold)
+  let separatorLabel = LabelFactory.makeLabel(text: "|", fontSize: 20, weight: .bold)
 
   //MARK: - Functions
+  public func configureCell(_ day: Day) {
+    let dateString = day.date
+      let dateFormatter = DateFormatter()
+    dateFormatter.locale = Locale(identifier: "ru_RU")
+      dateFormatter.dateFormat = "dd/MM/yyyy"
+      guard let date = dateFormatter.date(from: dateString) else {
+          print("Ошибка преобразования даты")
+          return
+      }
 
-  public func configureCell(_ data: ForecastWeatherModel) {
-    DispatchQueue.main.async {
-      guard let firstDay = data.days.first else { return }
+    let tempMaxC = day.tempMaxC
+    let tempMinC = day.tempMinC
 
-      let tempMaxC = firstDay.tempMaxC
-      let tempMinC = firstDay.tempMinC
-      let fourthDay = data.days[3]
-      let fourthTimeframe = fourthDay.timeframes[3]
+    dateFormatter.dateFormat = "dd MMMM"
+       let formattedDate = dateFormatter.string(from: date)
+       self.dateLabel.text = formattedDate
 
-      self.dateLabel.text = firstDay.date
-      self.minTemperatureLabel.text = "\(tempMinC)°"
-      self.maxTemperatureLabel.text = "\(tempMaxC)°"
-      self.windLabel.text = "\(fourthTimeframe.windspdMS) ms"
+    self.minTemperatureLabel.text = "\(Int(tempMinC))°"
+    self.maxTemperatureLabel.text = "\(Int(tempMaxC))°"
+    if day.timeframes.count > 3 {
+      let fourthTimeframe = day.timeframes[3]
+      self.conditionView.image = UIImage(named: fourthTimeframe.wxIcon)
+    } else {
+      let fourthTimeframe = day.timeframes[0]
       self.conditionView.image = UIImage(named: fourthTimeframe.wxIcon)
     }
   }
@@ -58,39 +67,31 @@ class DayCell: UICollectionViewCell {
     contentView.addSubview(conditionView)
     contentView.addSubview(minTemperatureLabel)
     contentView.addSubview(maxTemperatureLabel)
-    contentView.addSubview(windView)
-    contentView.addSubview(windLabel)
+    contentView.addSubview(separatorLabel)
   }
 
   //MARK: - Constraints
   private func setupConstraints() {
     NSLayoutConstraint.activate([
       dateLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-      dateLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 10),
+      dateLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
 
       conditionView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-      conditionView.leadingAnchor.constraint(equalTo: dateLabel.trailingAnchor, constant: 40),
-      conditionView.heightAnchor.constraint(equalTo: contentView.heightAnchor, constant: -10),
+      conditionView.centerXAnchor.constraint(equalTo: centerXAnchor),
+      conditionView.heightAnchor.constraint(equalTo: heightAnchor),
+      conditionView.widthAnchor.constraint(equalTo: heightAnchor),
 
-      maxTemperatureLabel.leadingAnchor.constraint(equalTo: conditionView.trailingAnchor, constant: 20),
+      maxTemperatureLabel.trailingAnchor.constraint(equalTo: separatorLabel.leadingAnchor, constant: -20),
       maxTemperatureLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
       maxTemperatureLabel.heightAnchor.constraint(equalTo: contentView.heightAnchor, constant: -10),
 
+      separatorLabel.trailingAnchor.constraint(equalTo: minTemperatureLabel.leadingAnchor, constant: -20),
+      separatorLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+      separatorLabel.heightAnchor.constraint(equalTo: contentView.heightAnchor),
+
       minTemperatureLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-      minTemperatureLabel.leadingAnchor.constraint(equalTo: maxTemperatureLabel.trailingAnchor, constant: 20),
-      minTemperatureLabel.heightAnchor.constraint(equalTo: contentView.heightAnchor, constant: -10),
-
-      windView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-      windView.trailingAnchor.constraint(equalTo: windLabel.leadingAnchor, constant: -10),
-      windView.heightAnchor.constraint(equalTo: contentView.heightAnchor, constant: -20),
-
-      windLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-      windLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
-      windLabel.heightAnchor.constraint(equalTo: contentView.heightAnchor, constant: -10)
+      minTemperatureLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+      minTemperatureLabel.heightAnchor.constraint(equalTo: contentView.heightAnchor, constant: -10)
     ])
   }
-}
-
-#Preview {
-  DayCell()
 }

@@ -8,10 +8,10 @@
 import UIKit
 
 struct StackViewFactory {
-    static func makeHorizontalStackView() -> UIStackView {
-        let stackView = UIStackView()
-        stackView.axis = .horizontal
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        return stackView
-    }
+  static func makeHorizontalStackView() -> UIStackView {
+    let stackView = UIStackView()
+    stackView.axis = .horizontal
+    stackView.translatesAutoresizingMaskIntoConstraints = false
+    return stackView
+  }
 }

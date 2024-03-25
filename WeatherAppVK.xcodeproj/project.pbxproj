@@ -12,7 +12,6 @@
 		57B55DD82BAD538300E225D2 /* WeatherViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57B55DD72BAD538300E225D2 /* WeatherViewController.swift */; };
 		57B55DDD2BAD538500E225D2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 57B55DDC2BAD538500E225D2 /* Assets.xcassets */; };
 		57B55DE02BAD538500E225D2 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 57B55DDE2BAD538500E225D2 /* LaunchScreen.storyboard */; };
-		57B55DE82BAD5E3B00E225D2 /* ForecastWeatherModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57B55DE72BAD5E3B00E225D2 /* ForecastWeatherModel.swift */; };
 		57B55DEA2BAD5E5100E225D2 /* CurrentWeatherModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57B55DE92BAD5E5100E225D2 /* CurrentWeatherModel.swift */; };
 		57B55DEC2BAD5E6C00E225D2 /* WeatherManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57B55DEB2BAD5E6C00E225D2 /* WeatherManager.swift */; };
 		57B55DEE2BAD6F7700E225D2 /* ButtonFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57B55DED2BAD6F7700E225D2 /* ButtonFactory.swift */; };
@@ -35,7 +34,6 @@
 		57B55DDC2BAD538500E225D2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		57B55DDF2BAD538500E225D2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		57B55DE12BAD538500E225D2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		57B55DE72BAD5E3B00E225D2 /* ForecastWeatherModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastWeatherModel.swift; sourceTree = "<group>"; };
 		57B55DE92BAD5E5100E225D2 /* CurrentWeatherModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentWeatherModel.swift; sourceTree = "<group>"; };
 		57B55DEB2BAD5E6C00E225D2 /* WeatherManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherManager.swift; sourceTree = "<group>"; };
 		57B55DED2BAD6F7700E225D2 /* ButtonFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonFactory.swift; sourceTree = "<group>"; };
@@ -119,7 +117,6 @@
 			isa = PBXGroup;
 			children = (
 				57B55DE92BAD5E5100E225D2 /* CurrentWeatherModel.swift */,
-				57B55DE72BAD5E3B00E225D2 /* ForecastWeatherModel.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -217,7 +214,6 @@
 				57B55DEE2BAD6F7700E225D2 /* ButtonFactory.swift in Sources */,
 				57B55DD82BAD538300E225D2 /* WeatherViewController.swift in Sources */,
 				57B55DD42BAD538300E225D2 /* AppDelegate.swift in Sources */,
-				57B55DE82BAD5E3B00E225D2 /* ForecastWeatherModel.swift in Sources */,
 				57B55DFF2BAEF2F400E225D2 /* WeatherView.swift in Sources */,
 				57B55DF72BAD750600E225D2 /* WeatherViewModel.swift in Sources */,
 				57B55E0F2BAF51DB00E225D2 /* DayCollectionView.swift in Sources */,
@@ -378,7 +374,7 @@
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -409,7 +405,7 @@
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

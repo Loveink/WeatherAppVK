@@ -10,10 +10,17 @@ import UIKit
 class DayCollectionView: UIView {
   var collectionView: UICollectionView!
 
+  var forecastWeather: ForecastWeatherModel? = nil {
+    didSet {
+      DispatchQueue.main.async {
+        self.collectionView.reloadData()
+      }
+    }
+  }
+
   override init(frame: CGRect) {
     super.init(frame: frame)
     configureCollection()
-    addSubview(collectionView)
     setupConstraints()
   }
 
@@ -31,6 +38,7 @@ class DayCollectionView: UIView {
     collectionView.register(DayCell.self, forCellWithReuseIdentifier: DayCell.identifier)
     collectionView.delegate = self
     collectionView.dataSource = self
+    addSubview(collectionView)
   }
 
   private func setupConstraints() {
@@ -44,22 +52,20 @@ class DayCollectionView: UIView {
 }
 
 extension DayCollectionView: UICollectionViewDelegateFlowLayout, UICollectionViewDataSource {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 7
-    }
+  func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+    return 7
+  }
 
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: DayCell.identifier, for: indexPath) as? DayCell else {
-            return UICollectionViewCell()
-        }
-        return cell
+  func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+    guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: DayCell.identifier, for: indexPath) as? DayCell else {
+      return UICollectionViewCell()
     }
+    guard let day = forecastWeather?.days[indexPath.item] else { return cell }
+    cell.configureCell(day)
+    return cell
+  }
 
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: 350, height: 60)
-    }
-}
-
-#Preview {
-  DayCollectionView()
+  func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+    return CGSize(width: 350, height: 60)
+  }
 }

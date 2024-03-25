@@ -17,13 +17,13 @@ final class WeatherView: UIView {
   let searchButton = ButtonFactory.makeButton(systemName: "magnifyingglass")
   let windLabel = LabelFactory.makeLabel(text: "21 ms", fontSize: 20, weight: .bold)
   let fellLikeTemperatureLabel = LabelFactory.makeLabel(text: "10°C", fontSize: 20, weight: .bold)
+  let collection7days = DayCollectionView()
 
   //MARK: Private properties
   private let windView = ImageViewFactory.makeImageView(systemName: "wind", tintColor: UIColor(named: "ColorText"))
   private lazy var backgroundView = ImageViewFactory.makeImageView(imageNamed: "background", contentMode: .scaleAspectFill, tintColor: nil)
   private let searchStackView = StackViewFactory.makeHorizontalStackView()
   private let fellLikeLabel = LabelFactory.makeLabel(text: "Ощущается как", fontSize: 20, weight: .bold)
-  private let collection7days = DayCollectionView()
 
   override init(frame: CGRect) {
     super.init(frame: frame)
@@ -35,6 +35,10 @@ final class WeatherView: UIView {
   @available(*, unavailable)
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
+  }
+
+  func setup(with forecastWeather: ForecastWeatherModel) {
+    collection7days.forecastWeather = forecastWeather
   }
 }
 
@@ -85,12 +89,18 @@ private extension WeatherView {
       searchButton.widthAnchor.constraint(equalToConstant: 40),
 
       conditionView.topAnchor.constraint(equalTo: locationButton.bottomAnchor, constant: 5),
-      conditionView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
+      conditionView.leadingAnchor.constraint(equalTo: locationButton.leadingAnchor),
       conditionView.heightAnchor.constraint(equalToConstant: 120),
       conditionView.widthAnchor.constraint(equalToConstant: 120),
 
       temperatureLabel.centerYAnchor.constraint(equalTo: conditionView.centerYAnchor),
       temperatureLabel.trailingAnchor.constraint(equalTo: searchButton.leadingAnchor),
+
+      fellLikeLabel.leadingAnchor.constraint(equalTo: temperatureLabel.leadingAnchor),
+      fellLikeLabel.bottomAnchor.constraint(equalTo: windLabel.topAnchor),
+
+      fellLikeTemperatureLabel.leadingAnchor.constraint(equalTo: fellLikeLabel.trailingAnchor, constant: 5),
+      fellLikeTemperatureLabel.bottomAnchor.constraint(equalTo: windLabel.topAnchor),
 
       cityLabel.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor, constant: -20),
       cityLabel.topAnchor.constraint(equalTo: conditionView.bottomAnchor, constant: 10),
@@ -101,20 +111,10 @@ private extension WeatherView {
       windLabel.leadingAnchor.constraint(equalTo: windView.trailingAnchor, constant: 20),
       windLabel.topAnchor.constraint(equalTo: conditionView.bottomAnchor, constant: 10),
 
-      fellLikeLabel.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor, constant: 20),
-      fellLikeLabel.topAnchor.constraint(equalTo: windLabel.bottomAnchor, constant: 5),
-
-      fellLikeTemperatureLabel.leadingAnchor.constraint(equalTo: fellLikeLabel.trailingAnchor, constant: 5),
-      fellLikeTemperatureLabel.topAnchor.constraint(equalTo: windLabel.bottomAnchor, constant: 5),
-
       collection7days.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor, constant: 20),
       collection7days.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor, constant: -10),
-      collection7days.topAnchor.constraint(equalTo: fellLikeLabel.bottomAnchor, constant: 10),
+      collection7days.topAnchor.constraint(equalTo: cityLabel.bottomAnchor, constant: 10),
       collection7days.bottomAnchor.constraint(equalTo: backgroundView.bottomAnchor, constant: -10)
     ])
   }
-}
-
-#Preview {
-  WeatherView()
 }

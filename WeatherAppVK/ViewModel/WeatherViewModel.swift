@@ -8,7 +8,7 @@
 import CoreLocation
 
 protocol WeatherViewModelDelegate: AnyObject {
-  func didUpdateWeather(_ weatherModel: CurrentWeatherModel)
+  func didUpdateWeather(_ weatherModel: WeatherModel)
   func didFailWithError(_ error: Error)
 }
 
@@ -16,6 +16,8 @@ class WeatherViewModel: NSObject {
   weak var delegate: WeatherViewModelDelegate?
   private var weatherManager = WeatherManager()
   private let locationManager = CLLocationManager()
+  private var reverseGeocodeCompletion: CityCompletion?
+  typealias CityCompletion = (String?) -> Void
 
   override init() {
     super.init()
@@ -28,17 +30,27 @@ class WeatherViewModel: NSObject {
     weatherManager.fetchWeather(cityName: city)
   }
 
-  func fetchWeatherForCurrentLocation() {
+  func fetchWeatherForCurrentLocation(completion: @escaping CityCompletion) {
     locationManager.requestLocation()
+    reverseGeocodeCompletion = completion
   }
 }
 
 extension WeatherViewModel: CLLocationManagerDelegate {
   func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-      locations.last
-          .map(\.coordinate)
-          .map { ($0.latitude, $0.longitude) }
-          .map(weatherManager.fetchWeather)
+    if let location = locations.last {
+      let latitude = location.coordinate.latitude
+      let longitude = location.coordinate.longitude
+
+      reverseGeocode(latitude: latitude, longitude: longitude) { [weak self] city in
+        DispatchQueue.main.async {
+          self?.reverseGeocodeCompletion?(city)
+        }
+        if let city = city {
+          self?.fetchWeather(forCity: city)
+        }
+      }
+    }
   }
 
   func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
@@ -47,7 +59,7 @@ extension WeatherViewModel: CLLocationManagerDelegate {
 }
 
 extension WeatherViewModel: WeatherManagerDelegate {
-  func didUpdateWeather(_ weatherManager: WeatherManager, weather: CurrentWeatherModel) {
+  func didUpdateWeather(_ weatherManager: WeatherManager, weather: WeatherModel) {
     delegate?.didUpdateWeather(weather)
   }
 
