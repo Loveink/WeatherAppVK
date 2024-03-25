@@ -1,5 +1,5 @@
 //
-//  CurrentWeatherModel.swift
+//  WeatherModel.swift
 //  WeatherAppVK
 //
 //  Created by Александра Савчук on 22.03.2024.
