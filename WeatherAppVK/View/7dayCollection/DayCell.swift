@@ -13,11 +13,11 @@ class DayCell: UICollectionViewCell {
 
   override init(frame: CGRect) {
     super.init(frame: frame)
-    backgroundColor = .white
+    backgroundColor = .lightText
     layer.cornerRadius = 20
     layer.masksToBounds = true
-    layer.borderColor = UIColor.systemBlue.cgColor
-    layer.borderWidth = 5
+    layer.borderColor = UIColor.darkGray.cgColor
+    layer.borderWidth = 2
     setupViews()
     setupConstraints()
   }
@@ -28,28 +28,29 @@ class DayCell: UICollectionViewCell {
 
   //MARK: - Outlets
   let dateLabel = LabelFactory.makeLabel(text: "21.04", fontSize: 20, weight: .bold)
-  let conditionView = ImageViewFactory.makeImageView(systemName: "sun.max", tintColor: UIColor(named: "ColorText"))
+  let conditionView = ImageViewFactory.makeImageView(systemName: "sun.max", tintColor: .black)
   let minTemperatureLabel = LabelFactory.makeLabel(text: "-6°", fontSize: 20, weight: .bold)
   let maxTemperatureLabel = LabelFactory.makeLabel(text: "21°", fontSize: 20, weight: .bold)
   let separatorLabel = LabelFactory.makeLabel(text: "|", fontSize: 20, weight: .bold)
 
   //MARK: - Functions
+
   public func configureCell(_ day: Day) {
     let dateString = day.date
-      let dateFormatter = DateFormatter()
+    let dateFormatter = DateFormatter()
     dateFormatter.locale = Locale(identifier: "ru_RU")
-      dateFormatter.dateFormat = "dd/MM/yyyy"
-      guard let date = dateFormatter.date(from: dateString) else {
-          print("Ошибка преобразования даты")
-          return
-      }
+    dateFormatter.dateFormat = "dd/MM/yyyy"
+    guard let date = dateFormatter.date(from: dateString) else {
+      print("Ошибка преобразования даты")
+      return
+    }
 
     let tempMaxC = day.tempMaxC
     let tempMinC = day.tempMinC
 
     dateFormatter.dateFormat = "dd MMMM"
-       let formattedDate = dateFormatter.string(from: date)
-       self.dateLabel.text = formattedDate
+    let formattedDate = dateFormatter.string(from: date)
+    self.dateLabel.text = formattedDate
 
     self.minTemperatureLabel.text = "\(Int(tempMinC))°"
     self.maxTemperatureLabel.text = "\(Int(tempMaxC))°"
@@ -91,6 +92,7 @@ class DayCell: UICollectionViewCell {
 
       minTemperatureLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
       minTemperatureLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+      minTemperatureLabel.widthAnchor.constraint(equalToConstant: 40),
       minTemperatureLabel.heightAnchor.constraint(equalTo: contentView.heightAnchor, constant: -10)
     ])
   }

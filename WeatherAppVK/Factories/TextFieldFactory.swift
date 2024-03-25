@@ -13,7 +13,7 @@ struct TextFieldFactory {
     textField.placeholder = placeholder
     textField.font = UIFont.systemFont(ofSize: 25, weight: .regular)
     textField.textColor = .lightGray
-    textField.textAlignment = .right
+    textField.textAlignment = .center
     textField.autocapitalizationType = .words
     textField.returnKeyType = .go
     textField.backgroundColor = .placeholderText

@@ -8,26 +8,61 @@
 import CoreLocation
 
 protocol WeatherViewModelDelegate: AnyObject {
-  func didUpdateWeather(_ weatherModel: WeatherModel)
+  func didStartLoading(_ isLoading: Bool)
   func didFailWithError(_ error: Error)
+  func didUpdateCurrent(_ weatherModel: CurrentWeatherModel)
+  func didUpdateForecast(_ weatherModel: ForecastWeatherModel)
 }
 
 class WeatherViewModel: NSObject {
   weak var delegate: WeatherViewModelDelegate?
-  private var weatherManager = WeatherManager()
-  private let locationManager = CLLocationManager()
-  private var reverseGeocodeCompletion: CityCompletion?
   typealias CityCompletion = (String?) -> Void
 
-  override init() {
+  private let locationManager = CLLocationManager()
+  private let weatherManager: WeatherManager
+  private let cityCompleter = CityCompleter()
+  private var reverseGeocodeCompletion: CityCompletion?
+
+  init(weatherManager: WeatherManager = .init()) {
+    self.weatherManager = weatherManager
     super.init()
     locationManager.delegate = self
     locationManager.requestWhenInUseAuthorization()
-    weatherManager.delegate = self
   }
 
   func fetchWeather(forCity city: String) {
-    weatherManager.fetchWeather(cityName: city)
+    delegate?.didStartLoading(true)
+    let group = DispatchGroup()
+    group.enter()
+
+    weatherManager.getCurrentWeather(for: city) { [weak self] result in
+      defer { group.leave() }
+      guard let self else { return }
+      delegate.map { del in
+        DispatchQueue.main.async {
+          _ = result
+            .map(del.didUpdateCurrent)
+            .mapError { del.didFailWithError($0); return $0 }
+        }
+      }
+    }
+
+    group.enter()
+    weatherManager.getForecastWeather(for: city) { [weak self] result in
+      defer { group.leave() }
+      guard let self else { return }
+      delegate.map { del in
+        DispatchQueue.main.async {
+          _ = result
+            .map(del.didUpdateForecast)
+            .mapError { del.didFailWithError($0); return $0 }
+        }
+      }
+    }
+
+    group.notify(queue: .main) {
+      self.delegate?.didStartLoading(false)
+    }
   }
 
   func fetchWeatherForCurrentLocation(completion: @escaping CityCompletion) {
@@ -42,7 +77,7 @@ extension WeatherViewModel: CLLocationManagerDelegate {
       let latitude = location.coordinate.latitude
       let longitude = location.coordinate.longitude
 
-      reverseGeocode(latitude: latitude, longitude: longitude) { [weak self] city in
+      cityCompleter.reverseGeocode(latitude: latitude, longitude: longitude) { [weak self] city in
         DispatchQueue.main.async {
           self?.reverseGeocodeCompletion?(city)
         }
@@ -54,16 +89,6 @@ extension WeatherViewModel: CLLocationManagerDelegate {
   }
 
   func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-    didFailWithError(error: error)
-  }
-}
-
-extension WeatherViewModel: WeatherManagerDelegate {
-  func didUpdateWeather(_ weatherManager: WeatherManager, weather: WeatherModel) {
-    delegate?.didUpdateWeather(weather)
-  }
-
-  func didFailWithError(error: Error) {
     delegate?.didFailWithError(error)
   }
 }

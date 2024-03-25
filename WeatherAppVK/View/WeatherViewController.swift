@@ -74,18 +74,32 @@ extension WeatherViewController: UITextFieldDelegate {
 
 //MARK: WeatherViewModelDelegate
 extension WeatherViewController: WeatherViewModelDelegate {
-  func didUpdateWeather(_ weatherModel: WeatherModel) {
-    DispatchQueue.main.async { [weak self] in
-      guard let self = self, let currentWeather = weatherModel.currentWeather, let forecastWeather = weatherModel.forecastWeather else { return }
-      self.weatherView.temperatureLabel.text = "\(currentWeather.tempC)°C"
-      self.weatherView.conditionView.image = UIImage(named: "\(currentWeather.wxIcon)")
-      self.weatherView.windLabel.text = "\(currentWeather.windspdMS) м/с"
-      self.weatherView.fellLikeTemperatureLabel.text = "\(Int(currentWeather.feelslikeC))°C"
-      self.weatherView.setup(with: forecastWeather)
+  func didStartLoading(_ isLoading: Bool) {
+    if isLoading {
+      let activityIndicator = UIActivityIndicatorView(style: .large)
+      activityIndicator.center = view.center
+      activityIndicator.startAnimating()
+      view.addSubview(activityIndicator)
+    } else {
+      view.subviews.filter { $0 is UIActivityIndicatorView }.forEach { $0.removeFromSuperview() }
     }
   }
 
+  func didUpdateCurrent(_ weatherModel: CurrentWeatherModel) {
+    weatherView.temperatureLabel.text = "\(weatherModel.tempC)°C"
+    weatherView.conditionView.image = UIImage(named: "\(weatherModel.wxIcon)")
+    weatherView.windLabel.text = "\(weatherModel.windspdMS) м/с"
+    weatherView.fellLikeTemperatureLabel.text = "Ощущается как \(Int(weatherModel.feelslikeC))°C"
+  }
+
+  func didUpdateForecast(_ weatherModel: ForecastWeatherModel) {
+    weatherView.setup(with: weatherModel)
+  }
+
   func didFailWithError(_ error: Error) {
-    print("Error \(error.localizedDescription)")
+    let alert = UIAlertController(title: "Ошибка", message: "Что-то пошло не так: \(error.localizedDescription)", preferredStyle: .alert)
+    let okAction = UIAlertAction(title: "OK", style: .default)
+    alert.addAction(okAction)
+    self.present(alert, animated: true, completion: nil)
   }
 }

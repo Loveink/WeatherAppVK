@@ -60,8 +60,10 @@ extension DayCollectionView: UICollectionViewDelegateFlowLayout, UICollectionVie
     guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: DayCell.identifier, for: indexPath) as? DayCell else {
       return UICollectionViewCell()
     }
+
     guard let day = forecastWeather?.days[indexPath.item] else { return cell }
     cell.configureCell(day)
+
     return cell
   }
 

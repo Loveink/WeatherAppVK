@@ -13,7 +13,7 @@ struct ButtonFactory {
     let config = UIImage.SymbolConfiguration(pointSize: 40, weight: .medium, scale: .default)
     let image = UIImage(systemName: systemName, withConfiguration: config)
     button.setImage(image, for: .normal)
-    button.tintColor = UIColor(named: "ColorText")
+    button.tintColor = .black
     button.translatesAutoresizingMaskIntoConstraints = false
       action.map { button.addAction($0, for: .touchUpInside) }
     return button

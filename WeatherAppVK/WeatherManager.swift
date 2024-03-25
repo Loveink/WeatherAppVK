@@ -5,7 +5,7 @@
 //  Created by Александра Савчук on 22.03.2024.
 //
 
-import UIKit
+import Foundation
 import CoreLocation
 
 protocol WeatherManagerDelegate {
@@ -14,79 +14,82 @@ protocol WeatherManagerDelegate {
 }
 
 struct WeatherManager {
-  let currentBaseURL = "http://api.weatherunlocked.com/api/current/"
-  let forecastBaseURL = "http://api.weatherunlocked.com/api/forecast/"
-  let apiKey = "6889dd77e925fe59613db86d643f893e"
-  let appId = "cddce782"
-
   let session = URLSession(configuration: .default)
   let decoder = JSONDecoder()
   var delegate: WeatherManagerDelegate?
+  let cityCompleter = CityCompleter()
 
-  func fetchWeather(cityName: String) {
-    searchCoordinates(for: cityName) { coordinates in
-      if let coordinates = coordinates {
-        let currentURLString = "\(self.currentBaseURL)\(coordinates.0),\(coordinates.1)?app_id=\(self.appId)&app_key=\(self.apiKey)"
-        let forecastURLString = "\(self.forecastBaseURL)\(coordinates.0),\(coordinates.1)?app_id=\(self.appId)&app_key=\(self.apiKey)"
-        self.performRequest(with: currentURLString, forecastURLString)
-      } else {
-        print("Failed to get coordinates for \(cityName)")
+  func getForecastWeather(for cityName: String, _ completion: @escaping (Result<ForecastWeatherModel, Error>) -> Void) {
+    cityCompleter.searchCoordinates(for: cityName) { coordinates in
+      switch coordinates {
+      case let .some((lat, lon)):
+        getForecastWeather(lat: lat, lon: lon, completion)
+
+      case .none:
+        completion(.failure(CLLocationPushServiceError(.unknown)))
       }
     }
   }
 
-  func fetchWeather(latitude: CLLocationDegrees, longitude: CLLocationDegrees) {
-    let currentURLString = "\(self.currentBaseURL)\(latitude),\(longitude)?app_id=\(self.appId)&app_key=\(self.apiKey)"
-    let forecastURLString = "\(self.forecastBaseURL)\(latitude),\(longitude)?app_id=\(self.appId)&app_key=\(self.apiKey)"
-    self.performRequest(with: currentURLString, forecastURLString)
+  func getForecastWeather(lat: Double, lon: Double, _ completion: @escaping (Result<ForecastWeatherModel, Error>) -> Void) {
+    getWeather(.forecastWeatherAt(latitude: lat, longitude: lon), completion: completion)
   }
 
-  func performRequest(with currentURLString: String, _ forecastURLString: String) {
-    guard let currentURL = URL(string: currentURLString), let forecastURL = URL(string: forecastURLString) else { return }
+  func getCurrentWeather(for cityName: String, _ completion: @escaping (Result<CurrentWeatherModel, Error>) -> Void) {
+    cityCompleter.searchCoordinates(for: cityName) { coordinates in
+      switch coordinates {
+      case let .some((lat, lon)):
+        getCurrentWeather(lat: lat, lon: lon, completion)
 
-    let group = DispatchGroup()
-    var currentWeather: CurrentWeatherModel?
-    var forecastWeather: ForecastWeatherModel?
-
-    group.enter()
-    let currentTask = session.dataTask(with: currentURL) { (data, response, error) in
-      defer { group.leave() }
-      guard let data = data else { return }
-      currentWeather = self.parseCurrentJSON(data)
-    }
-    currentTask.resume()
-
-    group.enter()
-    let forecastTask = session.dataTask(with: forecastURL) { (data, response, error) in
-      defer { group.leave() }
-      guard let data = data else { return }
-      forecastWeather = self.parseForecastJSON(data)
-    }
-    forecastTask.resume()
-
-    group.notify(queue: .main) {
-      let weather = WeatherModel(currentWeather: currentWeather, forecastWeather: forecastWeather)
-      self.delegate?.didUpdateWeather(self, weather: weather)
+      case .none:
+        completion(.failure(CLLocationPushServiceError(.unknown)))
+      }
     }
   }
 
-  func parseCurrentJSON(_ data: Data) -> CurrentWeatherModel? {
-    do {
-      let decodedData = try decoder.decode(CurrentWeatherModel.self, from: data)
-      return decodedData
-    } catch {
-      print("Error decoding current weather JSON: \(error)")
-      return nil
+  func getCurrentWeather(lat: Double, lon: Double, _ completion: @escaping (Result<CurrentWeatherModel, Error>) -> Void) {
+    getWeather(.currentWeatherAt(latitude: lat, longitude: lon), completion: completion)
+  }
+
+  func getWeather<T: Decodable>(_ endpoint: Endpoint, completion: @escaping (Result<T, Error>) -> Void) {
+    request(from: endpoint.url) { result in
+      completion(
+        result
+          .decode(T.self, decoder: self.decoder)
+      )
     }
   }
 
-  func parseForecastJSON(_ data: Data) -> ForecastWeatherModel? {
-    do {
-      let decodedData = try decoder.decode(ForecastWeatherModel.self, from: data)
-      return decodedData
-    } catch {
-      print("Error decoding forecast weather JSON: \(error)")
-      return nil
+  func request(from url: URL, completion: @escaping (Result<Data, Error>) -> Void) {
+    session.dataTask(with: url) { data, response, error in
+      error
+        .map(Result.failure)
+        .map(completion)
+
+      response
+        .flatMap { $0 as? HTTPURLResponse }
+        .map(\.statusCode)
+        .flatMap { (200...299).contains($0) ? nil : $0 }
+        .map { _ in URLError(.badServerResponse) }
+        .map(Result.failure)
+        .map(completion)
+
+      data.map(Result.success)
+        .map(completion)
+    }
+    .resume()
+  }
+}
+
+extension Result where Success == Data, Failure == Error {
+  @inlinable
+  func decode<T:Decodable>(_ type: T.Type, decoder: JSONDecoder) -> Result<T, Failure> {
+    switch self {
+    case .success(let data):
+      return Result<T, Failure> { try decoder.decode(type, from: data) }
+
+    case .failure(let failure):
+      return .failure(failure)
     }
   }
 }
